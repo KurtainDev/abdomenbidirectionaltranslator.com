@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<title>Abdomen Font Generator</title>
+<title>Abdomen Font Bidirectional Generator</title>
 <style>
   body {
     font-family: Arial, sans-serif;
@@ -59,15 +59,16 @@
 
 <body>
 
-<h1>Abdomen Font Generator</h1>
+<h1>Abdomen Font Bidirectional</h1>
 
-<textarea id="input" placeholder="Type here..."></textarea>
+<textarea id="input" placeholder="Type normal OR abdomen text..."></textarea>
 
 <div class="output" id="output"></div>
 
 <button onclick="copyText()">Copy Output</button>
 
 <script>
+// forward map (a -> symbol)
 const map = {
   a: "0",
   b: "θ",
@@ -97,11 +98,25 @@ const map = {
   z: "ʍ"
 };
 
-function convert(text) {
+// reverse map (symbol -> a)
+const reverseMap = {};
+for (const key in map) {
+  reverseMap[map[key]] = key;
+}
+
+// multi-char symbols first (important for parsing)
+const symbols = Object.keys(reverseMap).sort((a, b) => b.length - a.length);
+
+// detect if text is abdomen-like
+function isAbdomen(text) {
+  return /[θ∫⊂⊃ϟΩ△⌒⩑ʝʍ⎾_·]/.test(text);
+}
+
+// normal -> abdomen
+function encode(text) {
   return text
     .toLowerCase()
-    .trim()
-    .split(/\s+/) // split words
+    .split(/\s+/)
     .map(word =>
       word
         .split("")
@@ -111,11 +126,52 @@ function convert(text) {
     .join(" / ");
 }
 
+// abdomen -> normal
+function decode(text) {
+  let words = text.split(/\s*\/\s*/);
+
+  return words
+    .map(word => {
+      let result = "";
+
+      let i = 0;
+      while (i < word.length) {
+        let matched = null;
+
+        for (let sym of symbols) {
+          if (word.slice(i, i + sym.length) === sym) {
+            matched = sym;
+            break;
+          }
+        }
+
+        if (matched) {
+          result += reverseMap[matched] ?? "";
+          i += matched.length;
+        } else if (word[i] !== " ") {
+          result += word[i];
+          i++;
+        } else {
+          i++;
+        }
+      }
+
+      return result;
+    })
+    .join(" ");
+}
+
 const input = document.getElementById("input");
 const output = document.getElementById("output");
 
 input.addEventListener("input", () => {
-  output.textContent = convert(input.value);
+  const text = input.value;
+
+  if (isAbdomen(text)) {
+    output.textContent = decode(text);
+  } else {
+    output.textContent = encode(text);
+  }
 });
 
 function copyText() {
