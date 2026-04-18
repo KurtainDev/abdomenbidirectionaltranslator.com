@@ -93,12 +93,13 @@
 const map = {
   a:"0", b:"θ", c:"]", d:"\\", e:"<", f:"∫", g:"q",
   h:"ϟ", i:"⊂⊃", j:"ʝ", k:"☐", l:"¿", m:"V", n:"·",
-  o:"X", p:"△", q:"—⌒", r:"⌒", s:"Ω", t:"\\",
+  o:"X", p:"△", q:"—⌒", r:"⌒", s:"Ω", t:"$",   // ← FIXED
   u:"⊃", v:"⩑", w:"∧", x:"⎾_", y:"ʔ", z:"ʍ"
 };
 
 const reverseMap = {};
 for (const k in map) reverseMap[map[k]] = k;
+
 const symbols = Object.keys(reverseMap).sort((a,b)=>b.length-a.length);
 
 function toTally(n){
@@ -130,7 +131,7 @@ function decodeAbdomen(text){
 }
 
 function isAbdomen(text){
-  return /[θ∫⊂⊃ϟΩ△⌒⩑ʝʍ⎾_·|]/.test(text);
+  return /[θ∫⊂⊃ϟΩ△⌒⩑ʝʍ⎾_·|$]/.test(text);
 }
 
 // ---------- MORSE ----------
@@ -165,19 +166,13 @@ function isMorse(text){
 
 // ---------- BASE64 ----------
 function encodeB64(text){
-  try {
-    return btoa(unescape(encodeURIComponent(text)));
-  } catch {
-    return "Encoding error";
-  }
+  try { return btoa(unescape(encodeURIComponent(text))); }
+  catch { return "Encoding error"; }
 }
 
 function decodeB64(text){
-  try {
-    return decodeURIComponent(escape(atob(text)));
-  } catch {
-    return "Invalid Base64";
-  }
+  try { return decodeURIComponent(escape(atob(text))); }
+  catch { return "Invalid Base64"; }
 }
 
 // ---------- MAIN ----------
