@@ -93,20 +93,23 @@
 const map = {
   a:"0", b:"θ", c:"]", d:"\\", e:"<", f:"∫", g:"q",
   h:"ϟ", i:"⊂⊃", j:"ʝ", k:"☐", l:"¿", m:"V", n:"·",
-  o:"X", p:"△", q:"—⌒", r:"⌒", s:"Ω", t:"$",   // ← FIXED
-  u:"⊃", v:"⩑", w:"∧", x:"⎾_", y:"ʔ", z:"ʍ"
+  o:"X", p:"△", q:"—⌒", r:"⌒", s:"Ω", t:"$",
+  u:"⊃", v:"⩑", w:"∧", x:"⏋_", y:"ʔ", z:"ʍ"
 };
 
+// reverse map
 const reverseMap = {};
 for (const k in map) reverseMap[map[k]] = k;
 
+// prioritize longer symbols
 const symbols = Object.keys(reverseMap).sort((a,b)=>b.length-a.length);
 
+// tally (1–5 only)
 function toTally(n){
-  n=parseInt(n);
-  if(n===0) return "0";
-  if(n>5) return n;
-  if(n===5) return "||||/";
+  n = parseInt(n);
+  if(n === 0) return "0";
+  if(n > 5) return n.toString();
+  if(n === 5) return "||||/";
   return "|".repeat(n);
 }
 
@@ -122,16 +125,16 @@ function encodeAbdomen(text){
 function decodeAbdomen(text){
   return text.split(/\s*⟡\s*/).map(word=>{
     return word.trim().split(/\s+/).map(part=>{
-      if(part==="||||/") return "5";
-      if(/^\|+$/.test(part)) return part.length;
-      let m=symbols.find(s=>s===part);
-      return reverseMap[m] ?? part;
+      if(part === "||||/") return "5";
+      if(/^\|+$/.test(part)) return part.length.toString();
+      let match = symbols.find(s => s === part);
+      return reverseMap[match] ?? part;
     }).join("");
   }).join(" ");
 }
 
 function isAbdomen(text){
-  return /[θ∫⊂⊃ϟΩ△⌒⩑ʝʍ⎾_·|$]/.test(text);
+  return /[θ∫⊂⊃ϟΩ△⌒⩑ʝʍ⏋_·|$]/.test(text);
 }
 
 // ---------- MORSE ----------
@@ -149,14 +152,14 @@ const morseRev = {};
 for(const k in morse) morseRev[morse[k]] = k;
 
 function encodeMorse(text){
-  return text.toLowerCase().split(" ").map(w =>
-    w.split("").map(c=>morse[c]||c).join(" ")
+  return text.toLowerCase().split(" ").map(word =>
+    word.split("").map(c=>morse[c] || c).join(" ")
   ).join(" / ");
 }
 
 function decodeMorse(text){
-  return text.split(" / ").map(w =>
-    w.split(" ").map(c=>morseRev[c]||c).join("")
+  return text.split(" / ").map(word =>
+    word.split(" ").map(c=>morseRev[c] || c).join("")
   ).join(" ");
 }
 
@@ -166,13 +169,19 @@ function isMorse(text){
 
 // ---------- BASE64 ----------
 function encodeB64(text){
-  try { return btoa(unescape(encodeURIComponent(text))); }
-  catch { return "Encoding error"; }
+  try {
+    return btoa(unescape(encodeURIComponent(text)));
+  } catch {
+    return "Encoding error";
+  }
 }
 
 function decodeB64(text){
-  try { return decodeURIComponent(escape(atob(text))); }
-  catch { return "Invalid Base64"; }
+  try {
+    return decodeURIComponent(escape(atob(text)));
+  } catch {
+    return "Invalid Base64";
+  }
 }
 
 // ---------- MAIN ----------
@@ -186,27 +195,27 @@ mode.addEventListener("change", update);
 direction.addEventListener("change", update);
 
 function update(){
-  let text = input.value;
-  let m = mode.value;
-  let d = direction.value;
+  const text = input.value;
+  const m = mode.value;
+  const d = direction.value;
 
-  if(m==="abdomen"){
+  if(m === "abdomen"){
     output.textContent =
-      (d==="decode" || (d==="auto" && isAbdomen(text)))
+      (d === "decode" || (d === "auto" && isAbdomen(text)))
       ? decodeAbdomen(text)
       : encodeAbdomen(text);
   }
 
-  else if(m==="morse"){
+  else if(m === "morse"){
     output.textContent =
-      (d==="decode" || (d==="auto" && isMorse(text)))
+      (d === "decode" || (d === "auto" && isMorse(text)))
       ? decodeMorse(text)
       : encodeMorse(text);
   }
 
-  else if(m==="base64"){
+  else if(m === "base64"){
     output.textContent =
-      (d==="decode")
+      (d === "decode")
       ? decodeB64(text)
       : encodeB64(text);
   }
